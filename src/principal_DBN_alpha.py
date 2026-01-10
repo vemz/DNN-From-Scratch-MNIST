@@ -9,6 +9,12 @@ via un DBN (Deep Belief Network) et générer des caractères similaires.
 import numpy as np
 import scipy.io
 import matplotlib.pyplot as plt
+import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(BASE_DIR, '..', 'data')
+RESULTS_DIR = os.path.join(BASE_DIR, '..', 'results', 'DBN')
+os.makedirs(RESULTS_DIR, exist_ok=True)
 
 np.random.seed(42)
 
@@ -26,7 +32,8 @@ def lire_alpha_digit(indices=None):
     Retourne:
         X: matrice (n_samples x n_pixels), une ligne = une donnée
     """
-    mat = scipy.io.loadmat('binaryalphadigs.mat')
+    """
+    mat = scipy.io.loadmat(os.path.join(DATA_DIR, 'binaryalphadigs.mat'))
     data = mat['dat']
     
     X = []
@@ -347,7 +354,7 @@ if __name__ == "__main__":
     
     plt.suptitle("Impact de la profondeur du DBN", fontsize=14)
     plt.tight_layout()
-    plt.savefig("analyse_dbn_profondeur.png", dpi=150, bbox_inches='tight')
+    plt.savefig(os.path.join(RESULTS_DIR, "analyse_dbn_profondeur.png"), dpi=150, bbox_inches='tight')
     plt.show()
     
     # =========================================
@@ -379,7 +386,7 @@ if __name__ == "__main__":
     
     plt.suptitle("Génération DBN selon le nombre de caractères appris", fontsize=14)
     plt.tight_layout()
-    plt.savefig("analyse_dbn_caracteres.png", dpi=150, bbox_inches='tight')
+    plt.savefig(os.path.join(RESULTS_DIR, "analyse_dbn_caracteres.png"), dpi=150, bbox_inches='tight')
     plt.show()
     
     # =========================================
@@ -413,7 +420,7 @@ if __name__ == "__main__":
     
     plt.suptitle("Comparaison RBM vs DBN sur caractères A-E", fontsize=14)
     plt.tight_layout()
-    plt.savefig("comparaison_rbm_dbn.png", dpi=150, bbox_inches='tight')
+    plt.savefig(os.path.join(RESULTS_DIR, "comparaison_rbm_dbn.png"), dpi=150, bbox_inches='tight')
     plt.show()
     
     print("\n" + "="*70)

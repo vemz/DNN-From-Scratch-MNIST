@@ -1,157 +1,96 @@
-# TP Deep Neural Networks
-## Telecom SudParis - MAT5016
+# Deep Neural Networks - From Scratch
 
-Ce projet implémente un réseau de neurones profond pré-entrainé pour la classification de chiffres manuscrits, comparant les performances d'un réseau pré-entrainé avec un réseau initialisé aléatoirement.
+> Implémentation complète de RBM, DBN et DNN en pure Python / Numpy, sans framework de Deep Learning.
 
----
-
-## Structure du projet
-
-```
-MAT5016/
-├── principal_RBM_alpha.py    # Script autonome: RBM sur Binary AlphaDigits
-├── principal_DBN_alpha.py    # Script autonome: DBN sur Binary AlphaDigits
-├── principal_DNN_MNIST.py    # Script autonome: DNN sur MNIST (3 figures comparatives)
-├── binaryalphadigs.mat       # Base de données Binary AlphaDigits
-└── README.md                 # Ce fichier
-```
-
-**Note:** Chaque script `principal_*.py` est **100% autonome** - tout le code (RBM, DBN, DNN) est inclus dans chaque fichier sans imports externes.
+Ce projet a été réalisé dans le cadre du cours de Deep Learning (MAT5016) à Télécom SudParis. Il vise à comprendre les mécanismes internes des modèles génératifs et discriminatifs profonds.
 
 ---
 
-## Installation des dépendances
+## Fonctionnalités
+
+Le projet implémente les architectures suivantes de zéro :
+
+*   **RBM (Restricted Boltzmann Machine)** :
+    *   Apprentissage non-supervisé par *Contrastive Divergence* (CD-k).
+    *   Génération d'images par échantillonnage de Gibbs.
+*   **DBN (Deep Belief Network)** :
+    *   Empilement de RBMs.
+    *   Entrainement *Greedy Layer-Wise*.
+*   **DNN (Deep Neural Network)** :
+    *   Utilisation du DBN pour pré-initialiser le réseau.
+    *   Fine-tuning supervisé par rétropropagation (Backpropagation).
+    *   Comparaison : *Pre-trained* vs *Random Initialization*.
+
+## Structure du Projet
+
+Les dossiers `data/` et `results/` sont exclus du contrôle de version (gitignore) pour ne garder que le code source léger. Vous devrez les créer ou les peupler localement comme indiqué ci-dessous.
 
 ```bash
-pip install numpy matplotlib scipy scikit-learn
+.
+├── src/                # Code source (RBM, DBN, DNN)
+├── data/               # Dossier local pour les datasets (à créer)
+├── results/            # Dossier local pour les graphiques générés (organisé par modèle)
+├── docs/               # Sujet et rapport
+└── README.md           # Documentation
 ```
 
----
+## Installation et Configuration
 
-## Données requises
+1.  **Cloner le dépôt**
+    ```bash
+    git clone https://github.com/username/DNN-From-Scratch-MNIST.git
+    cd DNN-From-Scratch-MNIST
+    ```
 
-### Binary AlphaDigits
-Le fichier `binaryalphadigs.mat` est inclus dans le projet.  
-Source originale : http://www.cs.nyu.edu/~roweis/data.html (via Web Archive)
+2.  **Installer les dépendances**
+    ```bash
+    pip install numpy matplotlib scipy scikit-learn pandas
+    ```
 
-### MNIST
-La base MNIST est téléchargée automatiquement via `scikit-learn` lors de la première exécution.
+3.  **Télécharger les données**
+    Le dataset `binaryalphadigs.mat` n'est pas inclus dans le dépôt.
+    *   Téléchargez-le depuis Kaggle : [Binary Alpha Digits Dataset](https://www.kaggle.com/datasets/angevalli/binary-alpha-digits)
+    *   Créez le dossier `data` et placez le fichier `binaryalphadigs.mat` dedans :
+        ```bash
+        mkdir -p data
+        mv /chemin/vers/binaryalphadigs.mat data/
+        ```
+    *(Note : Le dataset MNIST sera téléchargé automatiquement par scikit-learn lors de la première exécution)*
 
----
+## Utilisation
 
-## Exécution des scripts
+Les scripts doivent être lancés depuis la racine du projet.
 
-### 1. Étude préliminaire RBM (Binary AlphaDigits)
-
+### 1. Restricted Boltzmann Machine (RBM)
+Entraîne un RBM sur des caractères (AlphaDigits) et génère de nouvelles formes.
 ```bash
-python principal_RBM_alpha.py
+python src/principal_RBM_alpha.py
 ```
+*Les graphiques générés seront sauvegardés dans le dossier `results/RBM/`.*
 
-Ce script :
-- Entraine un RBM sur les caractères sélectionnés
-- Génère des images via l'échantillonneur de Gibbs
-- Analyse l'impact du nombre de neurones cachés
-- Analyse le pouvoir modélisant selon le nombre de caractères
-
-**Figures générées :**
-- `analyse_rbm_neurones.png`
-- `analyse_rbm_caracteres.png`
-
----
-
-### 2. Étude préliminaire DBN (Binary AlphaDigits)
-
+### 2. Deep Belief Network (DBN)
+Entraîne un réseau profond couche par couche.
 ```bash
-python principal_DBN_alpha.py
+python src/principal_DBN_alpha.py
 ```
+*Les graphiques générés seront sauvegardés dans le dossier `results/DBN/`.*
 
-Ce script :
-- Entraine un DBN avec la procédure Greedy Layer-Wise
-- Génère des images à partir du DBN
-- Analyse l'impact de la profondeur
-- Compare RBM vs DBN
-
-**Figures générées :**
-- `analyse_dbn_profondeur.png`
-- `analyse_dbn_caracteres.png`
-- `comparaison_rbm_dbn.png`
-
----
-
-### 3. Étude comparative sur MNIST
-
+### 3. Classification MNIST (DNN)
+Compare les performances avec et sans pré-entrainement.
 ```bash
-python principal_DNN_MNIST.py
+python src/principal_DNN_MNIST.py
 ```
+*Les courbes comparatives seront sauvegardées dans le dossier `results/DNN/`.*
 
-Ce script réalise l'étude comparative principale :
+## Résultats principaux
 
-**Figure 1** : Erreur vs Profondeur (nombre de couches)
-
-**Figure 2** : Erreur vs Largeur (neurones par couche)
-
-**Figure 3** : Erreur vs Données d'entrainement
-
-**Figures générées :**
-- `figure1_profondeur.png`
-- `figure2_largeur.png`
-- `figure3_donnees.png`
+L'étude démontre que le pré-entrainement non-supervisé (DBN) améliore significativement les performances du réseau de neurones, particulièrement lorsque :
+1.  Le nombre de données d'entrainement est limité.
+2.  Le réseau est très profond (nombreuses couches cachées).
 
 ---
 
-## Fonctions implémentées
+## Auteurs
 
-### RBM (Restricted Boltzmann Machine)
-- `init_RBM(p, q)` : initialise un RBM (poids ~ N(0, 0.01), biais = 0)
-- `entree_sortie_RBM(rbm, X)` : calcule P(h=1|v)
-- `sortie_entree_RBM(rbm, H)` : calcule P(v=1|h)
-- `train_RBM(rbm, X, epochs, lr, batch_size, k)` : apprentissage CD-k
-- `generer_image_RBM(rbm, n_iter_gibbs, n_images)` : génération par Gibbs
-
-### DBN (Deep Belief Network)
-- `init_DBN(layer_sizes)` : initialise un DBN (liste de RBMs)
-- `train_DBN(dbn, X, epochs, lr, batch_size)` : Greedy Layer-Wise training
-- `generer_image_DBN(dbn, n_iter_gibbs, n_images)` : génération top-down
-
-### DNN (Deep Neural Network)
-- `init_DNN(layer_sizes, n_classes)` : initialise un DNN
-- `pretrain_DNN(dnn, X, epochs, lr, batch_size)` : pré-entrainement DBN
-- `calcul_softmax(z)` : fonction softmax
-- `entree_sortie_reseau(dnn, X)` : forward pass complet
-- `retropropagation(dnn, X, Y, epochs, lr, batch_size)` : fine-tuning supervisé
-- `test_DNN(dnn, X_test, y_test)` : évaluation accuracy
-
----
-
-## Hyperparamètres recommandés
-
-| Paramètre | RBM/DBN | DNN (rétropropagation) |
-|-----------|---------|------------------------|
-| Epochs | 100 | 50 |
-| Learning rate | 0.1 | 0.1 |
-| Batch size | 10 (AlphaDigits) / 100 (MNIST) | 100 |
-| Gibbs iterations | 100-200 | - |
-
----
-
-## Résultats attendus
-
-L'avantage du pré-entrainement DBN est plus marqué :
-- Avec peu de données labellisées
-- Avec des réseaux plus profonds
-- En début d'entrainement (convergence plus rapide)
-
----
-
-## Installation
-
-```bash
-pip install numpy scipy matplotlib scikit-learn pandas
-```
-
----
-
-## Auteur
-
-TP réalisé dans le cadre du cours MAT5016 - Deep Learning  
-Telecom SudParis - Décembre 2025
+TP réalisé dans le cadre du cours MAT5016 - Deep Learning
+Télécom SudParis - Janvier 2026

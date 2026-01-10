@@ -9,6 +9,12 @@ via un RBM et générer des caractères similaires.
 import numpy as np
 import scipy.io
 import matplotlib.pyplot as plt
+import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(BASE_DIR, '..', 'data')
+RESULTS_DIR = os.path.join(BASE_DIR, '..', 'results', 'RBM')
+os.makedirs(RESULTS_DIR, exist_ok=True)
 
 np.random.seed(42)
 
@@ -26,7 +32,8 @@ def lire_alpha_digit(indices=None):
     Retourne:
         X: matrice (n_samples x n_pixels), une ligne = une donnée
     """
-    mat = scipy.io.loadmat('binaryalphadigs.mat')
+    """
+    mat = scipy.io.loadmat(os.path.join(DATA_DIR, 'binaryalphadigs.mat'))
     data = mat['dat']
     
     X = []
@@ -243,7 +250,7 @@ if __name__ == "__main__":
     
     plt.suptitle("Impact du nombre de neurones cachés", fontsize=14)
     plt.tight_layout()
-    plt.savefig("analyse_rbm_neurones.png", dpi=150, bbox_inches='tight')
+    plt.savefig(os.path.join(RESULTS_DIR, "analyse_rbm_neurones.png"), dpi=150, bbox_inches='tight')
     plt.show()
     
     # =========================================
@@ -276,7 +283,7 @@ if __name__ == "__main__":
     
     plt.suptitle("Pouvoir modélisant vs nombre de caractères", fontsize=14)
     plt.tight_layout()
-    plt.savefig("analyse_rbm_caracteres.png", dpi=150, bbox_inches='tight')
+    plt.savefig(os.path.join(RESULTS_DIR, "analyse_rbm_caracteres.png"), dpi=150, bbox_inches='tight')
     plt.show()
     
     print("\n" + "="*70)

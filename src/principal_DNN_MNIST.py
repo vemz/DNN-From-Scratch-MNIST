@@ -11,6 +11,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.datasets import fetch_openml
 from sklearn.model_selection import train_test_split
+import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+RESULTS_DIR = os.path.join(BASE_DIR, '..', 'results', 'DNN')
+os.makedirs(RESULTS_DIR, exist_ok=True)
 
 np.random.seed(42)
 
@@ -388,12 +393,12 @@ if __name__ == "__main__":
     print("="*70)
     
     depths = [
-        [784, 500],                     # 1 couche cachée
-        [784, 500, 256],                # 2 couches cachées
-        [784, 500, 256, 128],           # 3 couches cachées
-        [784, 500, 256, 128, 64],       # 4 couches cachées
+        [784, 200, 200],                # 2 couches (hidden)
+        [784, 200, 200, 200],           # 3 couches
+        [784, 200, 200, 200, 200],      # 4 couches
+        [784, 200, 200, 200, 200, 200], # 5 couches
     ]
-    depth_labels = ["1 couche", "2 couches", "3 couches", "4 couches"]
+    depth_labels = ["2 couches", "3 couches", "4 couches", "5 couches"]
     
     acc_pre_depth = []
     acc_rand_depth = []
@@ -425,7 +430,7 @@ if __name__ == "__main__":
     plt.legend()
     plt.grid(True, alpha=0.3, axis='y')
     plt.tight_layout()
-    plt.savefig("figure1_profondeur.png", dpi=150, bbox_inches='tight')
+    plt.savefig(os.path.join(RESULTS_DIR, "figure1_profondeur.png"), dpi=150, bbox_inches='tight')
     plt.show()
     
     # =========================================
@@ -436,12 +441,12 @@ if __name__ == "__main__":
     print("="*70)
     
     widths = [
-        [784, 100],
-        [784, 200],
-        [784, 500],
-        [784, 1000],
+        [784, 100, 100],
+        [784, 300, 300],
+        [784, 500, 500],
+        [784, 700, 700],
     ]
-    width_labels = ["100", "200", "500", "1000"]
+    width_labels = ["100", "300", "500", "700"]
     
     acc_pre_width = []
     acc_rand_width = []
@@ -471,7 +476,7 @@ if __name__ == "__main__":
     plt.legend()
     plt.grid(True, alpha=0.3, axis='y')
     plt.tight_layout()
-    plt.savefig("figure2_largeur.png", dpi=150, bbox_inches='tight')
+    plt.savefig(os.path.join(RESULTS_DIR, "figure2_largeur.png"), dpi=150, bbox_inches='tight')
     plt.show()
     
     # =========================================
@@ -514,7 +519,7 @@ if __name__ == "__main__":
     plt.legend()
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
-    plt.savefig("figure3_donnees.png", dpi=150, bbox_inches='tight')
+    plt.savefig(os.path.join(RESULTS_DIR, "figure3_donnees.png"), dpi=150, bbox_inches='tight')
     plt.show()
     
     # =========================================
