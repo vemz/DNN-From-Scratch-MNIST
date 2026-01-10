@@ -100,5 +100,5 @@ L'analyse comparative entre un DNN initialisé aléatoirement et un DNN pré-ent
 
 ---
 
-TP réalisé dans le cadre du cours MAT5016 - Deep Learning
+TP réalisé dans le cadre du cours MAT5016 - Deep Learning <br>
 Télécom SudParis - Janvier 2026
