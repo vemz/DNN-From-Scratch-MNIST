@@ -30,7 +30,6 @@ Les dossiers `data/` et `results/` sont exclus du contrôle de version (gitignor
 ├── src/                # Code source (RBM, DBN, DNN)
 ├── data/               # Dossier local pour les datasets (à créer)
 ├── results/            # Dossier local pour les graphiques générés (organisé par modèle)
-├── docs/               # Sujet et rapport
 └── README.md           # Documentation
 ```
 
