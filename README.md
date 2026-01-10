@@ -23,7 +23,7 @@ Le projet implémente les architectures suivantes :
 
 ## Structure du projet
 
-Vous devrez créer le dossier `data/` localement comme indiqué ci-dessous. Le dossier 'results/' sera créé automatiquement.
+Vous devrez créer le dossier `data/` localement comme indiqué ci-dessous. Le dossier `results/` sera créé automatiquement.
 
 ```bash
 .
@@ -100,8 +100,5 @@ L'analyse comparative entre un DNN initialisé aléatoirement et un DNN pré-ent
 
 ---
 
-## Auteurs
-
 TP réalisé dans le cadre du cours MAT5016 - Deep Learning
-
 Télécom SudParis - Janvier 2026
