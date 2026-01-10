@@ -46,7 +46,8 @@ Vous devrez créer le dossier `data/` localement comme indiqué ci-dessous. Le d
     pip install -r requirements.txt
     ```
 
-3.  **Télécharger les données** \\
+3.  **Télécharger les données**
+
     Le dataset `binaryalphadigs.mat` n'est pas inclus dans le dépôt.
     *   Téléchargez-le depuis Kaggle : [Binary Alpha Digits Dataset](https://www.kaggle.com/datasets/angevalli/binary-alpha-digits)
     *   Créez le dossier `data` et placez le fichier `binaryalphadigs.mat` dedans :
@@ -101,5 +102,6 @@ L'analyse comparative entre un DNN initialisé aléatoirement et un DNN pré-ent
 
 ## Auteurs
 
-TP réalisé dans le cadre du cours MAT5016 - Deep Learning \\
+TP réalisé dans le cadre du cours MAT5016 - Deep Learning
+
 Télécom SudParis - Janvier 2026
