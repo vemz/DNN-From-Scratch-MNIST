@@ -1,6 +1,6 @@
 # Deep Neural Networks - From scratch
 
-> Implémentation complète de RBM, DBN et DNN en pure Python / Numpy, sans framework de Deep Learning.
+> Implémentation complète de RBM, DBN et DNN en Python / Numpy, sans framework de Deep Learning.
 
 Ce projet a été réalisé dans le cadre du cours de Deep Learning (MAT5016) à Télécom SudParis. Il vise à comprendre les mécanismes internes des modèles génératifs et discriminatifs profonds.
 
