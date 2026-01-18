@@ -1,89 +1,43 @@
-# Deep Neural Networks - From scratch
+# Deep Neural Networks - TP MAT5016
 
-> Implémentation complète de RBM, DBN et DNN en Python / Numpy, sans framework de Deep Learning.
+Implémentation de RBM, DBN et DNN en NumPy (sans framework de Deep Learning).
 
-Ce projet a été réalisé dans le cadre du cours de Deep Learning (MAT5016) à Télécom SudParis. Il vise à comprendre les mécanismes internes des modèles génératifs et discriminatifs profonds.
-
----
-
-## Fonctionnalités
-
-Le projet implémente les architectures suivantes :
-
-*   **RBM (Restricted Boltzmann Machine)** :
-    *   Apprentissage non-supervisé par Contrastive Divergence (CD-k).
-    *   Génération d'images par échantillonnage de Gibbs.
-*   **DBN (Deep Belief Network)** :
-    *   Empilement de RBMs.
-    *   Entraînement Greedy Layer-Wise.
-*   **DNN (Deep Neural Network)** :
-    *   Utilisation du DBN pour pré-initialiser le réseau.
-    *   Fine-tuning supervisé par rétropropagation (Backpropagation).
-    *   Comparaison : Pre-trained vs Random Initialization.
-
-## Structure du projet
-
-Vous devrez créer le dossier `data/` localement comme indiqué ci-dessous. Le dossier `results/` sera créé automatiquement.
+## Installation
 
 ```bash
-.
-├── src/                # Code source (RBM, DBN, DNN)
-├── data/               # Dossier local pour les datasets (à créer)
-├── results/            # Dossier local pour les graphiques générés (organisé par modèle)
-└── README.md           # Documentation
+pip install -r requirements.txt
 ```
 
-## Installation et configuration
+## Lancer les scripts
 
-1.  **Cloner le dépôt**
-    ```bash
-    git clone https://github.com/username/DNN-From-Scratch-MNIST.git
-    cd DNN-From-Scratch-MNIST
-    ```
+Tous les scripts se trouvent dans `src/` :
 
-2.  **Installer les dépendances**
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-3.  **Télécharger les données**
-
-    Le dataset `binaryalphadigs.mat` n'est pas inclus dans le dépôt.
-    *   Téléchargez-le depuis Kaggle : [Binary Alpha Digits Dataset](https://www.kaggle.com/datasets/angevalli/binary-alpha-digits)
-    *   Créez le dossier `data` et placez le fichier `binaryalphadigs.mat` dedans :
-
-        ```bash
-        mkdir -p data
-        mv /chemin/vers/binaryalphadigs.mat data/
-        ```
-    *(Note : Le dataset MNIST sera téléchargé automatiquement par scikit-learn lors de la première exécution)*
-
-## Utilisation
-
-Les scripts doivent être lancés depuis la racine du projet.
-
-### 1. Restricted Boltzmann Machine (RBM)
-Entraîne un RBM sur des caractères (AlphaDigits) et génère de nouvelles formes.
+### 1. RBM sur Binary AlphaDigits
 ```bash
 python src/principal_RBM_alpha.py
 ```
-*Les graphiques générés seront sauvegardés dans le dossier `results/RBM/`.*
+Produit 2 graphiques dans `results/RBM/`
+- Analyse de l'impact du nombre de neurones cachés
+- Analyse du nombre de caractères appris
 
-### 2. Deep Belief Network (DBN)
-Entraîne un réseau profond couche par couche.
+### 2. DBN sur Binary AlphaDigits
 ```bash
 python src/principal_DBN_alpha.py
 ```
-*Les graphiques générés seront sauvegardés dans le dossier `results/DBN/`.*
+Produit 3 graphiques dans `results/DBN/`
+- Impact de la profondeur
+- Impact du nombre de caractères
+- Comparaison RBM vs DBN
 
-### 3. Classification MNIST (DNN)
-Compare les performances avec et sans pré-entrainement.
+### 3. DNN sur MNIST (comparaison pré-entrainé vs aléatoire)
 ```bash
 python src/principal_DNN_MNIST.py
 ```
-*Les courbes comparatives seront sauvegardées dans le dossier `results/DNN/`.*
+Produit 3 figures dans `results/DNN/`
+- Figure 1 : Erreur vs profondeur (2-5 couches de 200)
+- Figure 2 : Erreur vs largeur (100-700 neurones, 2 couches)
+- Figure 3 : Erreur vs taille des données (1000-60000 exemples)
 
 ---
 
-TP réalisé dans le cadre du cours MAT5016 - Deep Learning <br>
-Télécom SudParis - Janvier 2026
+Telecom SudParis - MAT5016 - Janvier 2026
