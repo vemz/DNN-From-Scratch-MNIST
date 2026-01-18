@@ -1,11 +1,3 @@
-"""
-principal_RBM_alpha.py
-Telecom SudParis - MAT5016
-
-Script principal pour apprendre les caractères de la base Binary AlphaDigits
-via un RBM et générer des caractères similaires.
-"""
-
 import numpy as np
 import scipy.io
 import matplotlib.pyplot as plt
@@ -21,15 +13,6 @@ np.random.seed(42)
 
 
 def lire_alpha_digit(indices=None):
-    """
-    Récupère les données Binary AlphaDigits sous forme matricielle.
-    
-    Arguments:
-        indices: liste des caractères à charger (0-9: chiffres, 10-35: lettres A-Z)
-    
-    Retourne:
-        X: matrice (n_samples x n_pixels), une ligne = une donnée
-    """
     mat = scipy.io.loadmat(os.path.join(DATA_DIR, 'binaryalphadigs.mat'))
     data = mat['dat']
     
@@ -47,12 +30,6 @@ def lire_alpha_digit(indices=None):
 
 
 class RBM:
-    """
-    Structure RBM avec:
-        W: matrice de poids (p x q)
-        a: biais des unités visibles (p,)
-        b: biais des unités cachées (q,)
-    """
     def __init__(self, W, a, b):
         self.W = W
         self.a = a
@@ -60,15 +37,10 @@ class RBM:
 
 
 def sigmoid(x):
-    """Fonction sigmoïde avec clipping pour stabilité."""
     return 1 / (1 + np.exp(-np.clip(x, -500, 500)))
 
 
 def init_RBM(p, q):
-    """
-    Initialise un RBM.
-    Poids: N(0, 0.01), biais: 0
-    """
     W = np.random.normal(0, 0.01, (p, q))
     a = np.zeros(p)
     b = np.zeros(q)
@@ -76,21 +48,14 @@ def init_RBM(p, q):
 
 
 def entree_sortie_RBM(rbm, X):
-    """Calcule P(h=1|v) via sigmoïde."""
     return sigmoid(X @ rbm.W + rbm.b)
 
 
 def sortie_entree_RBM(rbm, H):
-    """Calcule P(v=1|h) via sigmoïde."""
     return sigmoid(H @ rbm.W.T + rbm.a)
 
 
 def train_RBM(rbm, X, epochs, lr, batch_size, k=1, verbose=True):
-    """
-    Apprentissage non supervisé par Contrastive-Divergence-k.
-    
-    Affiche l'erreur quadratique de reconstruction à chaque epoch.
-    """
     n_samples, p = X.shape
     q = rbm.W.shape[1]
     errors = []
@@ -136,9 +101,6 @@ def train_RBM(rbm, X, epochs, lr, batch_size, k=1, verbose=True):
 
 
 def generer_image_RBM(rbm, n_iter_gibbs, n_images, image_shape=(20, 16), show=True):
-    """
-    Génère des images via échantillonnage de Gibbs.
-    """
     p = rbm.W.shape[0]
     q = rbm.W.shape[1]
     
@@ -165,10 +127,6 @@ def generer_image_RBM(rbm, n_iter_gibbs, n_images, image_shape=(20, 16), show=Tr
 
 if __name__ == "__main__":
     
-    print("="*70)
-    print("Étude préliminaire - RBM sur Binary AlphaDigits")
-    print("="*70)
-    
     N_HIDDEN = 200
     EPOCHS = 100
     LR = 0.1
@@ -189,8 +147,7 @@ if __name__ == "__main__":
         plt.axis('off')
     plt.suptitle("Exemples de données d'entrainement (Aléatoire)")
     plt.show()
-    
-    print("\n--- ENTRAINEMENT DU RBM ---")
+
     rbm = init_RBM(p=X.shape[1], q=N_HIDDEN)
     rbm, errors = train_RBM(rbm, X, epochs=EPOCHS, lr=LR, batch_size=BATCH_SIZE)
     
@@ -203,12 +160,9 @@ if __name__ == "__main__":
     plt.tight_layout()
     plt.show()
     
-    print("\n--- Génération d'images ---")
     generer_image_RBM(rbm, n_iter_gibbs=N_GIBBS, n_images=5)
     
-    print("\n" + "="*70)
     print("Analyse 1: impact du nombre de neurones cachés")
-    print("="*70)
     
     hidden_sizes = [100, 300, 700, 1000]
     fig, axes = plt.subplots(2, len(hidden_sizes), figsize=(4*len(hidden_sizes), 6))
@@ -234,9 +188,7 @@ if __name__ == "__main__":
     plt.savefig(os.path.join(RESULTS_DIR, "analyse_rbm_neurones.png"), dpi=150, bbox_inches='tight')
     plt.show()
     
-    print("\n" + "="*70)
     print("Analyse 2: pouvoir modélisant vs nombre de caractères")
-    print("="*70)
     
     char_sets = [[10], [10, 11], [10, 11, 12], [10, 11, 12, 13], [10, 11, 12, 13, 14]]
     char_names = ["A", "A,B", "A,B,C", "A,B,C,D", "A-E"]
@@ -265,7 +217,3 @@ if __name__ == "__main__":
     plt.tight_layout()
     plt.savefig(os.path.join(RESULTS_DIR, "analyse_rbm_caracteres.png"), dpi=150, bbox_inches='tight')
     plt.show()
-    
-    print("\n" + "="*70)
-    print("Étude RBM terminée")
-    print("="*70)

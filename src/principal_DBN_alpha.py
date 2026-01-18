@@ -1,11 +1,3 @@
-"""
-principal_DBN_alpha.py
-Telecom SudParis - MAT5016
-
-Script principal pour apprendre les caractères de la base Binary AlphaDigits
-via un DBN (Deep Belief Network) et générer des caractères similaires.
-"""
-
 import numpy as np
 import scipy.io
 import matplotlib.pyplot as plt
@@ -19,15 +11,6 @@ os.makedirs(RESULTS_DIR, exist_ok=True)
 np.random.seed(42)
 
 def lire_alpha_digit(indices=None):
-    """
-    Récupère les données Binary AlphaDigits sous forme matricielle.
-    
-    Arguments:
-        indices: liste des caractères à charger (0-9: chiffres, 10-35: lettres A-Z)
-    
-    Retourne:
-        X: matrice (n_samples x n_pixels), une ligne = une donnée
-    """
     mat = scipy.io.loadmat(os.path.join(DATA_DIR, 'binaryalphadigs.mat'))
     data = mat['dat']
     
@@ -45,12 +28,6 @@ def lire_alpha_digit(indices=None):
 
 
 class RBM:
-    """
-    Structure RBM avec:
-        W: matrice de poids (p x q)
-        a: biais des unités visibles (p,)
-        b: biais des unités cachées (q,)
-    """
     def __init__(self, W, a, b):
         self.W = W
         self.a = a
@@ -58,15 +35,10 @@ class RBM:
 
 
 def sigmoid(x):
-    """Fonction sigmoïde avec clipping pour stabilité."""
     return 1 / (1 + np.exp(-np.clip(x, -500, 500)))
 
 
 def init_RBM(p, q):
-    """
-    Initialise un RBM.
-    Poids: N(0, 0.01), biais: 0
-    """
     W = np.random.normal(0, 0.01, (p, q))
     a = np.zeros(p)
     b = np.zeros(q)
@@ -74,21 +46,14 @@ def init_RBM(p, q):
 
 
 def entree_sortie_RBM(rbm, X):
-    """Calcule P(h=1|v) via sigmoïde."""
     return sigmoid(X @ rbm.W + rbm.b)
 
 
 def sortie_entree_RBM(rbm, H):
-    """Calcule P(v=1|h) via sigmoïde."""
     return sigmoid(H @ rbm.W.T + rbm.a)
 
 
 def train_RBM(rbm, X, epochs, lr, batch_size, k=1, verbose=True):
-    """
-    Apprentissage non supervisé par Contrastive-Divergence-k.
-    
-    Affiche l'erreur quadratique de reconstruction à chaque epoch.
-    """
     n_samples, p = X.shape
     q = rbm.W.shape[1]
     errors = []
@@ -133,9 +98,6 @@ def train_RBM(rbm, X, epochs, lr, batch_size, k=1, verbose=True):
 
 
 def generer_image_RBM(rbm, n_iter_gibbs, n_images, image_shape=(20, 16), show=True):
-    """
-    Génère des images via échantillonnage de Gibbs.
-    """
     p = rbm.W.shape[0]
     q = rbm.W.shape[1]
     
@@ -161,23 +123,11 @@ def generer_image_RBM(rbm, n_iter_gibbs, n_images, image_shape=(20, 16), show=Tr
 
 
 class DBN:
-    """
-    Structure DBN: liste de RBMs empilés.
-    """
     def __init__(self, rbms):
         self.rbms = rbms
 
 
 def init_DBN(layer_sizes):
-    """
-    Initialise un DBN avec des couches de tailles données.
-    
-    Arguments:
-        layer_sizes: [p, q1, q2, ...] où p = dim visible, qi = dim cachée couche i
-    
-    Retourne:
-        DBN initialisé
-    """
     rbms = []
     for i in range(len(layer_sizes) - 1):
         rbm = init_RBM(layer_sizes[i], layer_sizes[i+1])
@@ -186,11 +136,6 @@ def init_DBN(layer_sizes):
 
 
 def train_DBN(dbn, X, epochs, lr, batch_size, k=1, verbose=True):
-    """
-    Apprentissage "greedy layer-wise":
-    - Entraine chaque RBM l'un après l'autre
-    - L'entrée du RBM i+1 = sortie cachée (probabilités) du RBM i
-    """
     n_rbms = len(dbn.rbms)
     current_input = X.copy()
     all_errors = []
@@ -210,11 +155,6 @@ def train_DBN(dbn, X, epochs, lr, batch_size, k=1, verbose=True):
 
 
 def generer_image_DBN(dbn, n_iter_gibbs, n_images, image_shape=(20, 16), show=True):
-    """
-    Génère des images à partir du DBN:
-    1. Échantillonnage de Gibbs sur le RBM du sommet
-    2. Propagation inverse couche par couche
-    """
     top_rbm = dbn.rbms[-1]
     q_top = top_rbm.W.shape[1]
     
@@ -246,10 +186,6 @@ def generer_image_DBN(dbn, n_iter_gibbs, n_images, image_shape=(20, 16), show=Tr
 
 if __name__ == "__main__":
     
-    print("="*70)
-    print("ÉTUDE DBN - DEEP BELIEF NETWORK SUR BINARY ALPHADIGITS")
-    print("="*70)
-    
     EPOCHS = 100
     LR = 0.1
     BATCH_SIZE = 10
@@ -270,7 +206,6 @@ if __name__ == "__main__":
     plt.suptitle("Exemples de données d'entrainement (aléatoire)")
     plt.show()
     
-    print("\n" + "="*70)
     print("Test: 1 couche - [320, 200]")
     dbn1 = init_DBN([320, 200])
     dbn1, _ = train_DBN(dbn1, X, epochs=EPOCHS, lr=LR, batch_size=BATCH_SIZE)
@@ -294,9 +229,6 @@ if __name__ == "__main__":
         ("4 couches\n[320, 200, 100, 50, 25]", dbn4)
     ]
     
-    
-    print("\n--- Génération d'images comparative ---")
-    
     fig, axes = plt.subplots(1, 4, figsize=(16, 4))
     
     for idx, (name, model) in enumerate(configs):
@@ -310,9 +242,7 @@ if __name__ == "__main__":
     plt.savefig(os.path.join(RESULTS_DIR, "analyse_dbn_profondeur.png"), dpi=150, bbox_inches='tight')
     plt.show()
     
-    print("\n" + "="*70)
     print("Analyse 2: DBN sur plusieurs caractères")
-    print("="*70)
     
     char_sets = [[10], [10, 11, 12], [10, 11, 12, 13, 14]]
     char_names = ["A seul", "A-C", "A-E (5 lettres)"]
@@ -346,9 +276,7 @@ if __name__ == "__main__":
     plt.savefig(os.path.join(RESULTS_DIR, "analyse_dbn_caracteres.png"), dpi=150, bbox_inches='tight')
     plt.show()
     
-    print("\n" + "="*70)
     print("Comparaison RBM (1 couche) vs DBN (2 couches)")
-    print("="*70)
     
     X_multi = lire_alpha_digit([10, 11, 12, 13, 14])
     
@@ -383,7 +311,3 @@ if __name__ == "__main__":
     plt.tight_layout()
     plt.savefig(os.path.join(RESULTS_DIR, "comparaison_rbm_dbn.png"), dpi=150, bbox_inches='tight')
     plt.show()
-    
-    print("\n" + "="*70)
-    print("Étude DBN terminée")
-    print("="*70)
