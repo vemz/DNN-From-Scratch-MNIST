@@ -10,6 +10,7 @@ import numpy as np
 import scipy.io
 import matplotlib.pyplot as plt
 import os
+from tqdm import tqdm
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, '..', 'data')
@@ -18,9 +19,6 @@ os.makedirs(RESULTS_DIR, exist_ok=True)
 
 np.random.seed(42)
 
-# ============================================================================
-# FONCTIONS DE CHARGEMENT DES DONNÉES
-# ============================================================================
 
 def lire_alpha_digit(indices=None):
     """
@@ -31,7 +29,6 @@ def lire_alpha_digit(indices=None):
     
     Retourne:
         X: matrice (n_samples x n_pixels), une ligne = une donnée
-    """
     """
     mat = scipy.io.loadmat(os.path.join(DATA_DIR, 'binaryalphadigs.mat'))
     data = mat['dat']
@@ -48,9 +45,6 @@ def lire_alpha_digit(indices=None):
             
     return np.array(X)
 
-# ============================================================================
-# STRUCTURE RBM
-# ============================================================================
 
 class RBM:
     """
@@ -64,9 +58,6 @@ class RBM:
         self.a = a
         self.b = b
 
-# ============================================================================
-# FONCTIONS RBM
-# ============================================================================
 
 def sigmoid(x):
     """Fonction sigmoïde avec clipping pour stabilité."""
@@ -104,7 +95,8 @@ def train_RBM(rbm, X, epochs, lr, batch_size, k=1, verbose=True):
     q = rbm.W.shape[1]
     errors = []
     
-    for epoch in range(epochs):
+    iterator = tqdm(range(epochs), desc="Training RBM", disable=not verbose)
+    for epoch in iterator:
         indices = np.random.permutation(n_samples)
         X_shuffled = X[indices]
         
@@ -115,12 +107,10 @@ def train_RBM(rbm, X, epochs, lr, batch_size, k=1, verbose=True):
             batch = X_shuffled[i:min(i + batch_size, n_samples)]
             m = batch.shape[0]
             
-            # Phase positive
             v0 = batch
             p_h0 = entree_sortie_RBM(rbm, v0)
             h = (np.random.rand(m, q) < p_h0).astype(float)
             
-            # CD-k
             for _ in range(k):
                 p_v = sortie_entree_RBM(rbm, h)
                 v = (np.random.rand(m, p) < p_v).astype(float)
@@ -129,7 +119,6 @@ def train_RBM(rbm, X, epochs, lr, batch_size, k=1, verbose=True):
             
             vk, p_hk = v, p_h
             
-            # Gradients et mise à jour
             rbm.W += lr * (v0.T @ p_h0 - vk.T @ p_hk) / m
             rbm.a += lr * np.mean(v0 - vk, axis=0)
             rbm.b += lr * np.mean(p_h0 - p_hk, axis=0)
@@ -140,8 +129,8 @@ def train_RBM(rbm, X, epochs, lr, batch_size, k=1, verbose=True):
         avg_error = total_error / n_batches
         errors.append(avg_error)
         
-        if verbose and (epoch % 10 == 0 or epoch == epochs - 1):
-            print(f"Epoch {epoch+1}/{epochs} - Erreur reconstruction: {avg_error:.4f}")
+        if verbose:
+            iterator.set_postfix({"Reconstruction error": f"{avg_error:.4f}"})
     
     return rbm, errors
 
@@ -173,17 +162,13 @@ def generer_image_RBM(rbm, n_iter_gibbs, n_images, image_shape=(20, 16), show=Tr
     
     return v
 
-# ============================================================================
-# PROGRAMME PRINCIPAL
-# ============================================================================
 
 if __name__ == "__main__":
     
     print("="*70)
-    print("ÉTUDE PRÉLIMINAIRE - RBM SUR BINARY ALPHADIGITS")
+    print("Étude préliminaire - RBM sur Binary AlphaDigits")
     print("="*70)
     
-    # Paramètres
     N_HIDDEN = 200
     EPOCHS = 100
     LR = 0.1
@@ -192,46 +177,40 @@ if __name__ == "__main__":
     
     print(f"\nParamètres: hidden={N_HIDDEN}, epochs={EPOCHS}, lr={LR}, batch={BATCH_SIZE}")
     
-    # Chargement des données
-    caracteres = [10]  # 10 = 'A'
-    X = lire_alpha_digit(caracteres)
+    alphabet_indices = list(range(10, 15))
+    X = lire_alpha_digit(alphabet_indices)
     print(f"Données: {X.shape[0]} images, {X.shape[1]} pixels")
     
-    # Affichage exemples
-    plt.figure(figsize=(10, 2))
-    for i in range(5):
+    plt.figure(figsize=(15, 4))
+    random_indices = np.random.choice(X.shape[0], 5, replace=False)
+    for i, idx in enumerate(random_indices):
         plt.subplot(1, 5, i+1)
-        plt.imshow(X[i].reshape(20, 16), cmap='gray')
+        plt.imshow(X[idx].reshape(20, 16), cmap='gray')
         plt.axis('off')
-    plt.suptitle("Exemples de données d'entrainement")
+    plt.suptitle("Exemples de données d'entrainement (Aléatoire)")
     plt.show()
     
-    # Entrainement
     print("\n--- ENTRAINEMENT DU RBM ---")
     rbm = init_RBM(p=X.shape[1], q=N_HIDDEN)
     rbm, errors = train_RBM(rbm, X, epochs=EPOCHS, lr=LR, batch_size=BATCH_SIZE)
     
-    # Courbe d'erreur
     plt.figure(figsize=(10, 5))
     plt.plot(errors, 'b-', linewidth=2)
     plt.xlabel("Epoch")
     plt.ylabel("Erreur de reconstruction")
     plt.title("Convergence du RBM")
     plt.grid(True, alpha=0.3)
+    plt.tight_layout()
     plt.show()
     
-    # Génération
-    print("\n--- GÉNÉRATION D'IMAGES ---")
+    print("\n--- Génération d'images ---")
     generer_image_RBM(rbm, n_iter_gibbs=N_GIBBS, n_images=5)
     
-    # =========================================
-    # ANALYSE 1: NOMBRE DE NEURONES CACHÉS
-    # =========================================
     print("\n" + "="*70)
-    print("ANALYSE 1: IMPACT DU NOMBRE DE NEURONES CACHÉS")
+    print("Analyse 1: impact du nombre de neurones cachés")
     print("="*70)
     
-    hidden_sizes = [50, 100, 200, 400]
+    hidden_sizes = [100, 300, 700, 1000]
     fig, axes = plt.subplots(2, len(hidden_sizes), figsize=(4*len(hidden_sizes), 6))
     
     for idx, n_hidden in enumerate(hidden_sizes):
@@ -243,6 +222,8 @@ if __name__ == "__main__":
         axes[0, idx].plot(errs)
         axes[0, idx].set_title(f"q={n_hidden}")
         axes[0, idx].set_xlabel("Epoch")
+        if idx == 0:
+            axes[0, idx].set_ylabel("Erreur (MSE)")
         axes[0, idx].grid(True, alpha=0.3)
         
         axes[1, idx].imshow(imgs[0].reshape(20, 16), cmap='gray')
@@ -253,15 +234,12 @@ if __name__ == "__main__":
     plt.savefig(os.path.join(RESULTS_DIR, "analyse_rbm_neurones.png"), dpi=150, bbox_inches='tight')
     plt.show()
     
-    # =========================================
-    # ANALYSE 2: NOMBRE DE CARACTÈRES
-    # =========================================
     print("\n" + "="*70)
-    print("ANALYSE 2: POUVOIR MODÉLISANT VS NOMBRE DE CARACTÈRES")
+    print("Analyse 2: pouvoir modélisant vs nombre de caractères")
     print("="*70)
     
-    char_sets = [[10], [10, 11], [10, 11, 12], [10, 11, 12, 13, 14]]
-    char_names = ["A", "A,B", "A,B,C", "A-E"]
+    char_sets = [[10], [10, 11], [10, 11, 12], [10, 11, 12, 13], [10, 11, 12, 13, 14]]
+    char_names = ["A", "A,B", "A,B,C", "A,B,C,D", "A-E"]
     
     fig, axes = plt.subplots(2, len(char_sets), figsize=(4*len(char_sets), 6))
     
@@ -276,6 +254,8 @@ if __name__ == "__main__":
         axes[0, idx].plot(errs)
         axes[0, idx].set_title(f"Caractères: {name}")
         axes[0, idx].set_xlabel("Epoch")
+        if idx == 0:
+            axes[0, idx].set_ylabel("Erreur (MSE)")
         axes[0, idx].grid(True, alpha=0.3)
         
         axes[1, idx].imshow(imgs[0].reshape(20, 16), cmap='gray')
@@ -287,5 +267,5 @@ if __name__ == "__main__":
     plt.show()
     
     print("\n" + "="*70)
-    print("ÉTUDE RBM TERMINÉE")
+    print("Étude RBM terminée")
     print("="*70)

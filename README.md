@@ -51,6 +51,7 @@ Vous devrez créer le dossier `data/` localement comme indiqué ci-dessous. Le d
     Le dataset `binaryalphadigs.mat` n'est pas inclus dans le dépôt.
     *   Téléchargez-le depuis Kaggle : [Binary Alpha Digits Dataset](https://www.kaggle.com/datasets/angevalli/binary-alpha-digits)
     *   Créez le dossier `data` et placez le fichier `binaryalphadigs.mat` dedans :
+
         ```bash
         mkdir -p data
         mv /chemin/vers/binaryalphadigs.mat data/
@@ -81,22 +82,6 @@ Compare les performances avec et sans pré-entrainement.
 python src/principal_DNN_MNIST.py
 ```
 *Les courbes comparatives seront sauvegardées dans le dossier `results/DNN/`.*
-
-## Résultats principaux
-
-L'analyse comparative entre un DNN initialisé aléatoirement et un DNN pré-entraîné (DBN) met en évidence trois phénomènes majeurs :
-
-1.  **Impact de la taille du jeu de données** :
-    *   Le pré-entraînement offre un gain de performance critique lorsque les données labellisées sont rares (ex: < 2000 images).
-    *   Le DBN agit comme un régularisateur, exploitant la structure des données pour éviter l'overfitting.
-
-2.  **Impact de la profondeur du réseau** :
-    *   Pour les architectures profondes (3 couches cachées et plus), l'initialisation aléatoire échoue souvent à converger correctement (problème du vanishing gradient).
-    *   Le pré-entraînement initialise les poids dans une région optimale de l'espace des paramètres, permettant l'entraînement efficace de réseaux profonds.
-
-3.  **Qualité des représentations** :
-    *   Les filtres appris par le RBM/DBN ressemblent à des détecteurs de traits (bords, boucles), contrairement au bruit typique d'une initialisation aléatoire.
-
 
 ---
 

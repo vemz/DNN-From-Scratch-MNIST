@@ -18,10 +18,6 @@ os.makedirs(RESULTS_DIR, exist_ok=True)
 
 np.random.seed(42)
 
-# ============================================================================
-# FONCTIONS DE CHARGEMENT DES DONNÉES
-# ============================================================================
-
 def lire_alpha_digit(indices=None):
     """
     Récupère les données Binary AlphaDigits sous forme matricielle.
@@ -31,7 +27,6 @@ def lire_alpha_digit(indices=None):
     
     Retourne:
         X: matrice (n_samples x n_pixels), une ligne = une donnée
-    """
     """
     mat = scipy.io.loadmat(os.path.join(DATA_DIR, 'binaryalphadigs.mat'))
     data = mat['dat']
@@ -48,9 +43,6 @@ def lire_alpha_digit(indices=None):
             
     return np.array(X)
 
-# ============================================================================
-# STRUCTURE RBM
-# ============================================================================
 
 class RBM:
     """
@@ -64,9 +56,6 @@ class RBM:
         self.a = a
         self.b = b
 
-# ============================================================================
-# FONCTIONS RBM
-# ============================================================================
 
 def sigmoid(x):
     """Fonction sigmoïde avec clipping pour stabilité."""
@@ -115,12 +104,10 @@ def train_RBM(rbm, X, epochs, lr, batch_size, k=1, verbose=True):
             batch = X_shuffled[i:min(i + batch_size, n_samples)]
             m = batch.shape[0]
             
-            # Phase positive
             v0 = batch
             p_h0 = entree_sortie_RBM(rbm, v0)
             h = (np.random.rand(m, q) < p_h0).astype(float)
             
-            # CD-k
             for _ in range(k):
                 p_v = sortie_entree_RBM(rbm, h)
                 v = (np.random.rand(m, p) < p_v).astype(float)
@@ -129,7 +116,6 @@ def train_RBM(rbm, X, epochs, lr, batch_size, k=1, verbose=True):
             
             vk, p_hk = v, p_h
             
-            # Gradients et mise à jour
             rbm.W += lr * (v0.T @ p_h0 - vk.T @ p_hk) / m
             rbm.a += lr * np.mean(v0 - vk, axis=0)
             rbm.b += lr * np.mean(p_h0 - p_hk, axis=0)
@@ -173,20 +159,14 @@ def generer_image_RBM(rbm, n_iter_gibbs, n_images, image_shape=(20, 16), show=Tr
     
     return v
 
-# ============================================================================
-# STRUCTURE DBN
-# ============================================================================
 
 class DBN:
     """
     Structure DBN: liste de RBMs empilés.
     """
     def __init__(self, rbms):
-        self.rbms = rbms  # Liste de RBMs
+        self.rbms = rbms
 
-# ============================================================================
-# FONCTIONS DBN
-# ============================================================================
 
 def init_DBN(layer_sizes):
     """
@@ -222,9 +202,9 @@ def train_DBN(dbn, X, epochs, lr, batch_size, k=1, verbose=True):
         
         rbm, errors = train_RBM(rbm, current_input, epochs, lr, batch_size, k, verbose)
         all_errors.append(errors)
-        
-        # Propagation pour la couche suivante
-        current_input = entree_sortie_RBM(rbm, current_input)
+        rbm, errors = train_RBM(rbm, current_input, epochs, lr, batch_size, k, verbose)
+        probs = entree_sortie_RBM(rbm, current_input)
+        current_input = (np.random.rand(*probs.shape) < probs).astype(float)
     
     return dbn, all_errors
 
@@ -235,21 +215,17 @@ def generer_image_DBN(dbn, n_iter_gibbs, n_images, image_shape=(20, 16), show=Tr
     1. Échantillonnage de Gibbs sur le RBM du sommet
     2. Propagation inverse couche par couche
     """
-    # RBM du sommet
     top_rbm = dbn.rbms[-1]
     q_top = top_rbm.W.shape[1]
     
-    # Initialisation aléatoire des unités cachées du sommet
     h = (np.random.rand(n_images, q_top) < 0.5).astype(float)
     
-    # Gibbs sampling sur le RBM du sommet
     for _ in range(n_iter_gibbs):
         v_prob = sortie_entree_RBM(top_rbm, h)
         v = (np.random.rand(n_images, top_rbm.W.shape[0]) < v_prob).astype(float)
         h_prob = entree_sortie_RBM(top_rbm, v)
         h = (np.random.rand(n_images, q_top) < h_prob).astype(float)
     
-    # Propagation inverse
     current = v
     for rbm in reversed(dbn.rbms[:-1]):
         current_prob = sortie_entree_RBM(rbm, current)
@@ -267,9 +243,6 @@ def generer_image_DBN(dbn, n_iter_gibbs, n_images, image_shape=(20, 16), show=Tr
     
     return current
 
-# ============================================================================
-# PROGRAMME PRINCIPAL
-# ============================================================================
 
 if __name__ == "__main__":
     
@@ -277,7 +250,6 @@ if __name__ == "__main__":
     print("ÉTUDE DBN - DEEP BELIEF NETWORK SUR BINARY ALPHADIGITS")
     print("="*70)
     
-    # Paramètres
     EPOCHS = 100
     LR = 0.1
     BATCH_SIZE = 10
@@ -285,87 +257,65 @@ if __name__ == "__main__":
     
     print(f"\nParamètres: epochs={EPOCHS}, lr={LR}, batch={BATCH_SIZE}")
     
-    # Chargement données
-    caracteres = [10]  # 'A'
-    X = lire_alpha_digit(caracteres)
+    alphabet_indices = list(range(10, 15))
+    X = lire_alpha_digit(alphabet_indices)
     print(f"Données: {X.shape[0]} images, {X.shape[1]} pixels (20x16)")
     
-    # Affichage exemples
-    plt.figure(figsize=(10, 2))
-    for i in range(5):
+    plt.figure(figsize=(15, 4))
+    random_indices = np.random.choice(X.shape[0], 5, replace=False)
+    for i, idx in enumerate(random_indices):
         plt.subplot(1, 5, i+1)
-        plt.imshow(X[i].reshape(20, 16), cmap='gray')
+        plt.imshow(X[idx].reshape(20, 16), cmap='gray')
         plt.axis('off')
-    plt.suptitle("Exemples de données d'entrainement")
+    plt.suptitle("Exemples de données d'entrainement (aléatoire)")
     plt.show()
     
-    # =========================================
-    # TEST DBN SIMPLE (2 couches)
-    # =========================================
     print("\n" + "="*70)
-    print("TEST DBN 2 COUCHES: 320 -> 200 -> 100")
-    print("="*70)
+    print("Test: 1 couche - [320, 200]")
+    dbn1 = init_DBN([320, 200])
+    dbn1, _ = train_DBN(dbn1, X, epochs=EPOCHS, lr=LR, batch_size=BATCH_SIZE)
+
+    print("Test: 2 couches - [320, 200, 100]")
+    dbn2 = init_DBN([320, 200, 100])
+    dbn2, all_errors = train_DBN(dbn2, X, epochs=EPOCHS, lr=LR, batch_size=BATCH_SIZE)
     
-    layer_sizes = [320, 200, 100]
-    dbn = init_DBN(layer_sizes)
-    dbn, all_errors = train_DBN(dbn, X, epochs=EPOCHS, lr=LR, batch_size=BATCH_SIZE)
+    print("Test: 3 couches - [320, 200, 100, 50]")
+    dbn3 = init_DBN([320, 200, 100, 50])
+    dbn3, _ = train_DBN(dbn3, X, epochs=EPOCHS, lr=LR, batch_size=BATCH_SIZE)
     
-    # Courbes d'erreur
-    fig, axes = plt.subplots(1, 2, figsize=(12, 4))
-    for i, errors in enumerate(all_errors):
-        axes[i].plot(errors, 'b-', linewidth=2)
-        axes[i].set_xlabel("Epoch")
-        axes[i].set_ylabel("Erreur reconstruction")
-        axes[i].set_title(f"Couche {i+1}")
-        axes[i].grid(True, alpha=0.3)
-    plt.suptitle("Convergence DBN couche par couche", fontsize=14)
-    plt.tight_layout()
-    plt.show()
-    
-    # Génération
-    print("\n--- GÉNÉRATION D'IMAGES ---")
-    generer_image_DBN(dbn, n_iter_gibbs=N_GIBBS, n_images=5)
-    
-    # =========================================
-    # ANALYSE 1: IMPACT DE LA PROFONDEUR
-    # =========================================
-    print("\n" + "="*70)
-    print("ANALYSE 1: IMPACT DE LA PROFONDEUR DU DBN")
-    print("="*70)
-    
-    architectures = [
-        [320, 200],           # 1 couche
-        [320, 200, 100],      # 2 couches
-        [320, 200, 100, 50],  # 3 couches
+    print("Test: 4 couches - [320, 200, 100, 50, 25]")
+    dbn4 = init_DBN([320, 200, 100, 50, 25])
+    dbn4, _ = train_DBN(dbn4, X, epochs=EPOCHS, lr=LR, batch_size=BATCH_SIZE)
+
+    configs = [
+        ("1 couche\n[320, 200]", dbn1),
+        ("2 couches\n[320, 200, 100]", dbn2),
+        ("3 couches\n[320, 200, 100, 50]", dbn3),
+        ("4 couches\n[320, 200, 100, 50, 25]", dbn4)
     ]
-    arch_names = ["1 couche", "2 couches", "3 couches"]
     
-    fig, axes = plt.subplots(1, len(architectures), figsize=(5*len(architectures), 4))
     
-    for idx, (arch, name) in enumerate(zip(architectures, arch_names)):
-        print(f"\nTest: {name} - {arch}")
-        dbn_test = init_DBN(arch)
-        dbn_test, _ = train_DBN(dbn_test, X, epochs=50, lr=LR, batch_size=BATCH_SIZE, verbose=False)
-        imgs = generer_image_DBN(dbn_test, N_GIBBS, 1, show=False)
-        
+    print("\n--- Génération d'images comparative ---")
+    
+    fig, axes = plt.subplots(1, 4, figsize=(16, 4))
+    
+    for idx, (name, model) in enumerate(configs):
+        imgs = generer_image_DBN(model, n_iter_gibbs=N_GIBBS, n_images=1, show=False)
         axes[idx].imshow(imgs[0].reshape(20, 16), cmap='gray')
-        axes[idx].set_title(f"{name}\n{arch}")
+        axes[idx].set_title(name)
         axes[idx].axis('off')
-    
+
     plt.suptitle("Impact de la profondeur du DBN", fontsize=14)
     plt.tight_layout()
     plt.savefig(os.path.join(RESULTS_DIR, "analyse_dbn_profondeur.png"), dpi=150, bbox_inches='tight')
     plt.show()
     
-    # =========================================
-    # ANALYSE 2: PLUSIEURS CARACTÈRES
-    # =========================================
     print("\n" + "="*70)
-    print("ANALYSE 2: DBN SUR PLUSIEURS CARACTÈRES")
+    print("Analyse 2: DBN sur plusieurs caractères")
     print("="*70)
     
-    char_sets = [[10], [10, 11, 12], [10, 11, 12, 13, 14, 15, 16, 17, 18, 19]]
-    char_names = ["A seul", "A-C", "A-J (10 lettres)"]
+    char_sets = [[10], [10, 11, 12], [10, 11, 12, 13, 14]]
+    char_names = ["A seul", "A-C", "A-E (5 lettres)"]
     
     fig, axes = plt.subplots(len(char_sets), 5, figsize=(12, 3*len(char_sets)))
     
@@ -375,35 +325,39 @@ if __name__ == "__main__":
         print(f"  {X_multi.shape[0]} images")
         
         dbn_test = init_DBN([320, 200, 100])
-        dbn_test, _ = train_DBN(dbn_test, X_multi, epochs=100, lr=LR, batch_size=BATCH_SIZE, verbose=False)
+        dbn_test, _ = train_DBN(dbn_test, X_multi, epochs=300, lr=LR, batch_size=BATCH_SIZE, verbose=False)
         imgs = generer_image_DBN(dbn_test, N_GIBBS, 5, show=False)
         
         for col in range(5):
             axes[row, col].imshow(imgs[col].reshape(20, 16), cmap='gray')
             axes[row, col].axis('off')
-            if col == 0:
-                axes[row, col].set_ylabel(name, fontsize=10, rotation=0, labelpad=40, ha='right')
+            
+        axes[row, 0].set_ylabel(name, fontsize=12, rotation=0, labelpad=40, ha='right')
+        axes[row, 0].axis('on')
+        axes[row, 0].set_xticks([])
+        axes[row, 0].set_yticks([])
+        axes[row, 0].spines['top'].set_visible(False)
+        axes[row, 0].spines['right'].set_visible(False)
+        axes[row, 0].spines['bottom'].set_visible(False)
+        axes[row, 0].spines['left'].set_visible(False)
     
     plt.suptitle("Génération DBN selon le nombre de caractères appris", fontsize=14)
     plt.tight_layout()
     plt.savefig(os.path.join(RESULTS_DIR, "analyse_dbn_caracteres.png"), dpi=150, bbox_inches='tight')
     plt.show()
     
-    # =========================================
-    # COMPARAISON RBM vs DBN
-    # =========================================
     print("\n" + "="*70)
-    print("COMPARAISON RBM (1 couche) vs DBN (2 couches)")
+    print("Comparaison RBM (1 couche) vs DBN (2 couches)")
     print("="*70)
     
     X_multi = lire_alpha_digit([10, 11, 12, 13, 14])
     
-    print("\nEntrainement RBM simple (320 -> 200)...")
+    print("\nEntraînement RBM simple (320 -> 200)...")
     rbm_simple = init_RBM(320, 200)
     rbm_simple, _ = train_RBM(rbm_simple, X_multi, epochs=100, lr=LR, batch_size=BATCH_SIZE, verbose=False)
     rbm_imgs = generer_image_RBM(rbm_simple, N_GIBBS, 5, show=False)
     
-    print("Entrainement DBN (320 -> 200 -> 100)...")
+    print("Entraînement DBN (320 -> 200 -> 100)...")
     dbn_compare = init_DBN([320, 200, 100])
     dbn_compare, _ = train_DBN(dbn_compare, X_multi, epochs=100, lr=LR, batch_size=BATCH_SIZE, verbose=False)
     dbn_imgs = generer_image_DBN(dbn_compare, N_GIBBS, 5, show=False)
@@ -415,8 +369,15 @@ if __name__ == "__main__":
         axes[1, i].imshow(dbn_imgs[i].reshape(20, 16), cmap='gray')
         axes[1, i].axis('off')
     
-    axes[0, 0].set_ylabel("RBM", fontsize=12, rotation=0, labelpad=30, ha='right')
-    axes[1, 0].set_ylabel("DBN", fontsize=12, rotation=0, labelpad=30, ha='right')
+    for row, name in enumerate(["RBM", "DBN"]):
+        axes[row, 0].set_ylabel(name, fontsize=12, rotation=0, labelpad=40, ha='right')
+        axes[row, 0].axis('on')
+        axes[row, 0].set_xticks([])
+        axes[row, 0].set_yticks([])
+        axes[row, 0].spines['top'].set_visible(False)
+        axes[row, 0].spines['right'].set_visible(False)
+        axes[row, 0].spines['bottom'].set_visible(False)
+        axes[row, 0].spines['left'].set_visible(False)
     
     plt.suptitle("Comparaison RBM vs DBN sur caractères A-E", fontsize=14)
     plt.tight_layout()
@@ -424,5 +385,5 @@ if __name__ == "__main__":
     plt.show()
     
     print("\n" + "="*70)
-    print("ÉTUDE DBN TERMINÉE")
+    print("Étude DBN terminée")
     print("="*70)
